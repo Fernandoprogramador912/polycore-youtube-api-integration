@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolyCore - YouTube Language Learning Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+        .sentence-highlight {
+            background-color: #fef3c7;
+            transition: all 0.3s ease;
+        }
+        .word-hover:hover {
+            background-color: #fde68a;
+            cursor: pointer;
+        }
+        .current-word {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-radius: 4px;
+            padding: 2px 4px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+        .current-sentence {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            transform: scale(1.02);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="book-open" class="h-8 w-8 text-blue-600"></i>
+                        <h1 class="text-2xl font-bold text-slate-900">PolyCore</h1>
+                    </div>
+                    <div class="hidden md:flex text-sm text-slate-600">
+                        YouTube Language Learning Platform
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        Powered by Real YouTube Subtitles
+                    </div>
+                </div>
+                
+                <!-- User Stats -->
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="trophy" class="h-5 w-5 text-yellow-500"></i>
+                        <span class="text-sm font-medium text-slate-700">XP: <span id="xp">0.00</span></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="zap" class="h-5 w-5 text-orange-500"></i>
+                        <span class="text-sm font-medium text-slate-700" id="streak">7</span> days
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="target" class="h-5 w-5 text-blue-500"></i>
+                        <span class="text-sm font-medium text-slate-700" id="wordsLearned">89</span> words
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="star" class="h-5 w-5 text-purple-500"></i>
+                        <span class="text-sm font-medium text-slate-700">Intermediate</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- YouTube URL Input -->
+        <div class="mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                    <i data-lucide="external-link" class="h-5 w-5 mr-2 text-blue-600"></i>
+                    🚀 Load Any YouTube Video
+                </h2>
+                <div class="flex space-x-3">
+                    <input
+                        type="url"
+                        id="videoUrl"
+                        placeholder="Paste YouTube URL here..."
+                        class="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        onkeypress="if(event.key==='Enter') loadVideo()"
+                    />
+                    <button
+                        onclick="loadVideo()"
+                        id="loadButton"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                    >
+                        Load Video
+                    </button>
+                </div>
+                <p class="text-sm text-slate-600 mt-2">
+                    ✨ Fetches real YouTube subtitles when available
+                </p>
+            </div>
+        </div>
+
+        <!-- Demo Videos -->
+        <div class="mb-8">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                    <i data-lucide="target" class="h-5 w-5 mr-2 text-purple-600"></i>
+                    🎯 Try These Videos
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="demo-video-card flex items-center space-x-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors" onclick="loadDemoVideo('dQw4w9WgXcQ', 'Rick Astley - Never Gonna Give You Up')">
+                        <div class="w-16 h-12 bg-slate-200 rounded flex items-center justify-center">
+                            <i data-lucide="play" class="h-4 w-4 text-slate-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-slate-900 text-sm">Rick Astley - Never Gonna Give You Up</h4>
+                            <p class="text-xs text-slate-600">by Rick Astley</p>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="px-2 py-0.5 rounded text-xs font-medium border bg-green-100 text-green-800 border-green-200">
+                                    Beginner
+                                </span>
+                                <span class="text-xs text-slate-500">3:33</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-video-card flex items-center space-x-3 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors" onclick="loadDemoVideo('9bZkp7q19f0', 'Gangnam Style')">
+                        <div class="w-16 h-12 bg-slate-200 rounded flex items-center justify-center">
+                            <i data-lucide="play" class="h-4 w-4 text-slate-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="font-medium text-slate-900 text-sm">PSY - Gangnam Style</h4>
+                            <p class="text-xs text-slate-600">by officialpsy</p>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="px-2 py-0.5 rounded text-xs font-medium border bg-yellow-100 text-yellow-800 border-yellow-200">
+                                    Intermediate
+                                </span>
+                                <span class="text-xs text-slate-500">4:12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content - Shows when video is loaded -->
+        <div id="mainContent" style="display: none;" class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <!-- Left Column - Video Player -->
+            <div class="space-y-6">
+                <!-- Video Player -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="aspect-video bg-black relative" id="videoContainer">
+                        <!-- YouTube player will be inserted here by IFrame API -->
+                        <div id="youtubePlayer" class="w-full h-full"></div>
+                    </div>
+                </div>
+
+                <!-- Settings Panel -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                        <i data-lucide="settings" class="h-5 w-5 mr-2 text-slate-600"></i>
+                        ⚙️ Settings
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Font Size</label>
+                            <select onchange="changeFontSize(this.value)" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="14">14px</option>
+                                <option value="16" selected>16px</option>
+                                <option value="18">18px</option>
+                                <option value="20">20px</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Primary Language</label>
+                                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="English" selected>English</option>
+                                    <option value="Spanish">Spanish</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Secondary Language</label>
+                                <select class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Spanish" selected>Spanish</option>
+                                    <option value="English">English</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Playback Speed</label>
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="setSpeed(0.5)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">0.5x</button>
+                                <button onclick="setSpeed(0.75)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">0.75x</button>
+                                <button onclick="setSpeed(1)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-blue-600 text-white transition-colors">1x</button>
+                                <button onclick="setSpeed(1.25)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">1.25x</button>
+                                <button onclick="setSpeed(1.5)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">1.5x</button>
+                                <button onclick="setSpeed(2)" class="speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors">2x</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Transcript -->
+            <div class="space-y-6">
+                <!-- Transcript -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 h-[600px] flex flex-col">
+                    <div class="p-6 border-b border-slate-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-slate-900 flex items-center">
+                                    <i data-lucide="subtitles" class="h-5 w-5 mr-2 text-blue-600"></i>
+                                    Interactive Transcript
+                                </h3>
+                                <p class="text-sm text-slate-600 mt-1">
+                                    Click on any sentence to jump to that moment • Click words to save them
+                                </p>
+                            </div>
+                            <button 
+                                id="syncToggle" 
+                                onclick="toggleSync()" 
+                                class="px-3 py-1 text-xs bg-green-100 text-green-800 rounded-lg border border-green-200 hover:bg-green-200 transition-colors">
+                                🎯 Auto-sync ON
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="transcriptContainer" class="flex-1 overflow-y-auto p-6 space-y-4">
+                        <!-- Transcript content will load here -->
+                    </div>
+                </div>
+
+                <!-- Saved Words -->
+                <div id="savedWordsContainer" style="display: none;" class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4 flex items-center">
+                        <i data-lucide="book-open" class="h-5 w-5 mr-2 text-green-600"></i>
+                        Saved Words (<span id="savedWordsCount">0</span>)
+                    </h3>
+                    <div id="savedWordsList" class="flex flex-wrap gap-2">
+                        <!-- Saved words will appear here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Initial State Message -->
+        <div id="initialMessage" class="text-center py-16">
+            <div class="max-w-md mx-auto">
+                <i data-lucide="youtube" class="h-24 w-24 mx-auto mb-6 text-red-500"></i>
+                <h3 class="text-xl font-semibold text-slate-900 mb-2">Ready to Learn!</h3>
+                <p class="text-slate-600">Load a YouTube video above to start your language learning journey with interactive transcripts and translations.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let savedWords = [];
+        let xp = 0.00;
+        let wordsLearned = 89;
+        let currentFontSize = 16;
+        let currentVideoId = null;
+        let selectedSentence = null;
+        let currentTranscript = [];
+        let player = null; // YouTube player instance
+        let syncInterval = null; // Interval for syncing
+        let isYouTubeAPIReady = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            lucide.createIcons();
+        });
+
+        // YouTube IFrame API ready callback
+        function onYouTubeIframeAPIReady() {
+            console.log('🎬 YouTube IFrame API ready');
+            isYouTubeAPIReady = true;
+        }
+
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        async function loadVideo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            
+            if (!url) {
+                showMessage('Please enter a YouTube URL', 'error');
+                return;
+            }
+            
+            const videoId = extractYouTubeId(url);
+            
+            if (videoId) {
+                await loadYouTubeVideoWithSubtitles(videoId, 'Custom Video');
+                document.getElementById('videoUrl').value = '';
+            } else {
+                showMessage('Invalid YouTube URL. Please enter a valid YouTube link.', 'error');
+            }
+        }
+
+        async function loadDemoVideo(videoId, title) {
+            await loadYouTubeVideoWithSubtitles(videoId, title);
+            showMessage('Demo loaded: ' + title, 'success');
+        }
+
+        async function loadYouTubeVideoWithSubtitles(videoId, title) {
+            // Load the video
+            loadYouTubeVideo(videoId, title);
+            
+            // Show loading state
+            showTranscriptLoading();
+            setLoadingState(true);
+            
+            try {
+                // Fetch subtitles from our API
+                console.log(`🎬 Fetching subtitles for: ${videoId}`);
+                const response = await fetch(`/api/subtitles?videoId=${videoId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('📊 API Response:', data);
+                
+                if (data.success && data.transcript && data.transcript.length > 0) {
+                    loadTranscript(data.transcript);
+                    
+                    const sourceMessage = data.source === 'youtube-real-subtitles' 
+                        ? 'Real YouTube subtitles loaded!' 
+                        : 'Sample subtitles loaded (real subtitles not available)';
+                        
+                    showMessage(sourceMessage, data.source === 'youtube-real-subtitles' ? 'success' : 'warning');
+                } else {
+                    throw new Error('No transcript data received');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error loading subtitles:', error);
+                showErrorMessage(videoId, error.message);
+                showMessage('Error loading subtitles: ' + error.message, 'error');
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        function loadYouTubeVideo(videoId, title) {
+            if (!isYouTubeAPIReady) {
+                console.log('⏳ Waiting for YouTube API...');
+                setTimeout(() => loadYouTubeVideo(videoId, title), 500);
+                return;
+            }
+            
+            const mainContent = document.getElementById('mainContent');
+            const initialMessage = document.getElementById('initialMessage');
+            
+            // Destroy previous player if exists
+            if (player) {
+                player.destroy();
+            }
+            
+            // Create new player with IFrame API
+            player = new YT.Player('youtubePlayer', {
+                height: '100%',
+                width: '100%',
+                videoId: videoId,
+                playerVars: {
+                    'enablejsapi': 1,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'iv_load_policy': 3
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+            
+            currentVideoId = videoId;
+            
+            // Show main content
+            mainContent.style.display = 'grid';
+            initialMessage.style.display = 'none';
+            
+            console.log('📺 Video loaded with IFrame API:', videoId);
+        }
+
+        function onPlayerReady(event) {
+            console.log('✅ YouTube player ready');
+            // Start sync when player is ready
+            startTranscriptSync();
+        }
+
+        function onPlayerStateChange(event) {
+            // YT.PlayerState.PLAYING = 1, YT.PlayerState.PAUSED = 2
+            if (event.data === YT.PlayerState.PLAYING && autoSyncEnabled) {
+                startTranscriptSync();
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                stopTranscriptSync();
+            }
+        }
+
+        function startTranscriptSync() {
+            if (!autoSyncEnabled) return;
+            
+            if (syncInterval) {
+                clearInterval(syncInterval);
+            }
+            
+            syncInterval = setInterval(() => {
+                if (player && player.getCurrentTime && currentTranscript.length > 0 && autoSyncEnabled) {
+                    const currentTime = player.getCurrentTime();
+                    syncTranscriptWithVideo(currentTime);
+                }
+            }, 200); // Update every 200ms for smooth sync
+        }
+
+        function stopTranscriptSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+            }
+        }
+
+        function syncTranscriptWithVideo(currentTime) {
+            // Find current sentence based on timestamp
+            let currentSentenceIndex = -1;
+            let currentWordData = null;
+            
+            for (let i = 0; i < currentTranscript.length; i++) {
+                const sentence = currentTranscript[i];
+                if (currentTime >= sentence.start && currentTime <= sentence.end) {
+                    currentSentenceIndex = i;
+                    
+                    // Calculate approximate word position within sentence
+                    const sentenceProgress = (currentTime - sentence.start) / (sentence.end - sentence.start);
+                    const words = sentence.text.split(' ');
+                    const wordIndex = Math.floor(sentenceProgress * words.length);
+                    
+                    currentWordData = {
+                        sentenceIndex: i,
+                        wordIndex: Math.min(wordIndex, words.length - 1),
+                        word: words[Math.min(wordIndex, words.length - 1)]
+                    };
+                    break;
+                }
+            }
+            
+            // Update UI
+            updateTranscriptHighlight(currentSentenceIndex, currentWordData);
+        }
+
+        function updateTranscriptHighlight(sentenceIndex, wordData) {
+            // Remove previous highlights
+            document.querySelectorAll('#transcriptContainer .current-sentence').forEach(el => {
+                el.classList.remove('current-sentence');
+            });
+            document.querySelectorAll('#transcriptContainer .current-word').forEach(el => {
+                el.classList.remove('current-word');
+            });
+            
+            if (sentenceIndex >= 0) {
+                // Highlight current sentence
+                const sentenceElements = document.querySelectorAll('#transcriptContainer > div');
+                if (sentenceElements[sentenceIndex]) {
+                    sentenceElements[sentenceIndex].classList.add('current-sentence');
+                    
+                    // Scroll to current sentence
+                    sentenceElements[sentenceIndex].scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    
+                    // Highlight current word
+                    if (wordData) {
+                        const wordElements = sentenceElements[sentenceIndex].querySelectorAll('.word-hover');
+                        if (wordElements[wordData.wordIndex]) {
+                            wordElements[wordData.wordIndex].classList.add('current-word');
+                        }
+                    }
+                }
+            }
+        }
+
+        function showTranscriptLoading() {
+            const container = document.getElementById('transcriptContainer');
+            container.innerHTML = `
+                <div class="flex items-center justify-center h-40">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p class="text-slate-600 font-medium">Fetching subtitles...</p>
+                        <p class="text-sm text-slate-500 mt-1">Connecting to our API</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showErrorMessage(videoId, errorMsg) {
+            const container = document.getElementById('transcriptContainer');
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <i data-lucide="x-circle" class="h-16 w-16 mx-auto mb-4 text-red-500"></i>
+                    <h3 class="text-lg font-semibold text-slate-900 mb-2">Error Loading Subtitles</h3>
+                    <p class="text-slate-600 mb-4">There was an error fetching the subtitles for this video.</p>
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+                        <p class="text-sm text-red-800">
+                            <strong>Video ID:</strong> ${videoId}<br>
+                            <strong>Error:</strong> ${errorMsg}
+                        </p>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function loadTranscript(transcriptData) {
+            currentTranscript = transcriptData;
+            const container = document.getElementById('transcriptContainer');
+            container.innerHTML = '';
+            
+            transcriptData.forEach((sentence, index) => {
+                const sentenceDiv = document.createElement('div');
+                sentenceDiv.className = 'p-4 rounded-lg border-l-4 cursor-pointer transition-all hover:bg-slate-50 border-l-transparent hover:border-l-slate-300';
+                sentenceDiv.onclick = () => jumpToSentence(sentence, index);
+                
+                const difficultyColors = {
+                    'beginner': 'bg-green-100 text-green-800 border-green-200',
+                    'intermediate': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                    'advanced': 'bg-red-100 text-red-800 border-red-200'
+                };
+                
+                sentenceDiv.innerHTML = `
+                    <div class="flex items-start justify-between mb-2">
+                        <span class="text-xs text-slate-500 font-medium">${formatTime(sentence.start)}</span>
+                        <span class="px-2 py-0.5 rounded text-xs font-medium border ${difficultyColors[sentence.difficulty]}">
+                            ${sentence.difficulty}
+                        </span>
+                    </div>
+                    <p class="text-slate-900 mb-2 leading-relaxed" style="font-size: ${currentFontSize}px">
+                        ${sentence.text.split(' ').map(word => `<span class="word-hover px-0.5 rounded transition-colors" onclick="saveWord(event, '${word.replace(/[.,!?]/g, '')}')">${word}</span>`).join(' ')}
+                    </p>
+                    ${sentence.translation ? `<p class="text-slate-600 text-sm leading-relaxed">${sentence.translation}</p>` : ''}
+                `;
+                
+                container.appendChild(sentenceDiv);
+            });
+        }
+
+        function jumpToSentence(sentence, index) {
+            selectedSentence = index;
+            
+            // Jump to timestamp in video if player is available
+            if (player && player.seekTo) {
+                player.seekTo(sentence.start, true);
+                console.log(`🎯 Jumped to ${sentence.start}s: ${sentence.text.substring(0, 50)}...`);
+            }
+            
+            // Highlight selected sentence (temporarily)
+            document.querySelectorAll('#transcriptContainer > div').forEach((div, i) => {
+                if (i === index) {
+                    div.className = div.className.replace('border-l-transparent', 'border-l-blue-500');
+                    div.className = div.className.replace('hover:bg-slate-50', 'bg-blue-50');
+                } else {
+                    div.className = div.className.replace('border-l-blue-500', 'border-l-transparent');
+                    div.className = div.className.replace('bg-blue-50', 'hover:bg-slate-50');
+                }
+            });
+            
+            // Scroll to sentence
+            const sentenceElement = document.querySelectorAll('#transcriptContainer > div')[index];
+            if (sentenceElement) {
+                sentenceElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            addXP(0.005);
+        }
+
+        function saveWord(event, word) {
+            event.stopPropagation();
+            
+            if (!savedWords.includes(word) && word.length > 2) {
+                savedWords.push(word);
+                updateSavedWords();
+                addXP(0.01);
+                wordsLearned++;
+                document.getElementById('wordsLearned').textContent = wordsLearned;
+                console.log(`💾 Saved word: ${word}`);
+            }
+        }
+
+        function updateSavedWords() {
+            const container = document.getElementById('savedWordsContainer');
+            const list = document.getElementById('savedWordsList');
+            const count = document.getElementById('savedWordsCount');
+            
+            if (savedWords.length > 0) {
+                container.style.display = 'block';
+                count.textContent = savedWords.length;
+                
+                list.innerHTML = savedWords.map(word => 
+                    `<span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium border border-green-200">${word}</span>`
+                ).join('');
+            }
+        }
+
+        function addXP(amount) {
+            xp = Math.round((xp + amount) * 100) / 100;
+            document.getElementById('xp').textContent = xp.toFixed(2);
+            showXPAnimation(amount);
+        }
+
+        function showXPAnimation(amount) {
+            const xpElement = document.getElementById('xp');
+            const animation = document.createElement('div');
+            animation.className = 'absolute text-green-600 font-bold text-sm pointer-events-none z-10';
+            animation.textContent = `+${amount.toFixed(3)} XP`;
+            animation.style.top = '-20px';
+            animation.style.right = '0';
+            animation.style.opacity = '1';
+            animation.style.transform = 'translateY(0)';
+            animation.style.transition = 'all 1s ease-out';
+            
+            xpElement.parentElement.style.position = 'relative';
+            xpElement.parentElement.appendChild(animation);
+            
+            setTimeout(() => {
+                animation.style.opacity = '0';
+                animation.style.transform = 'translateY(-10px)';
+            }, 100);
+            
+            setTimeout(() => animation.remove(), 1100);
+        }
+
+        function setLoadingState(loading) {
+            const button = document.getElementById('loadButton');
+            
+            if (loading) {
+                button.textContent = 'Loading...';
+                button.disabled = true;
+                button.className = 'px-6 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed font-medium';
+            } else {
+                button.textContent = 'Load Video';
+                button.disabled = false;
+                button.className = 'px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors';
+            }
+        }
+
+        function setSpeed(speed) {
+            // Update YouTube player speed
+            if (player && player.setPlaybackRate) {
+                player.setPlaybackRate(speed);
+                console.log(`⚡ Speed set to: ${speed}x`);
+            }
+            
+            // Update UI
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.className = 'speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors';
+            });
+            
+            event.target.className = 'speed-btn px-3 py-1 rounded-lg text-sm font-medium bg-blue-600 text-white transition-colors';
+        }
+
+        function changeFontSize(size) {
+            currentFontSize = parseInt(size);
+            document.querySelectorAll('#transcriptContainer p').forEach((p, index) => {
+                if (index % 2 === 0) {
+                    p.style.fontSize = `${currentFontSize}px`;
+                }
+            });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        let autoSyncEnabled = true;
+
+        function toggleSync() {
+            autoSyncEnabled = !autoSyncEnabled;
+            const toggleButton = document.getElementById('syncToggle');
+            
+            if (autoSyncEnabled) {
+                toggleButton.textContent = '🎯 Auto-sync ON';
+                toggleButton.className = 'px-3 py-1 text-xs bg-green-100 text-green-800 rounded-lg border border-green-200 hover:bg-green-200 transition-colors';
+                if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    startTranscriptSync();
+                }
+                showMessage('Auto-sync enabled', 'success');
+            } else {
+                toggleButton.textContent = '🎯 Auto-sync OFF';
+                toggleButton.className = 'px-3 py-1 text-xs bg-red-100 text-red-800 rounded-lg border border-red-200 hover:bg-red-200 transition-colors';
+                stopTranscriptSync();
+                showMessage('Auto-sync disabled', 'warning');
+            }
+        }
+
+        function showMessage(message, type) {
+            const toast = document.createElement('div');
+            let bgColor = 'bg-blue-500';
+            
+            if (type === 'success') bgColor = 'bg-green-500';
+            else if (type === 'error') bgColor = 'bg-red-500';
+            else if (type === 'warning') bgColor = 'bg-yellow-500';
+            
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transition-all ${bgColor} text-white`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), type === 'error' ? 5000 : 3000);
+        }
+    </script>
+</body>
+</html>
