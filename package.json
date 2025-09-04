@@ -1,7 +1,8 @@
 {
   "name": "polycore-english",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "Plataforma de aprendizaje de idiomas con YouTube, subtítulos interactivos y traducción IA",
   "type": "module",
   "scripts": {
     "dev": "vite",
